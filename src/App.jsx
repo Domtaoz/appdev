@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 const App = () => {
   const [fileContent, setFileContent] = useState("");
+  const [fileExtension, setFileExtension] = useState("");
   const [output, setOutput] = useState("");
 
   const handleFileUpload = (event) => {
@@ -11,6 +12,7 @@ const App = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         setFileContent(e.target.result);
+        setFileExtension(file.name.split('.').pop()); // ✅ ดึง file extension
       };
       reader.readAsText(file);
     }
@@ -18,27 +20,16 @@ const App = () => {
 
   const handleCompile = async () => {
     try {
-      // ตรวจสอบนามสกุลไฟล์จากชื่อไฟล์
-      const fileExtension = fileContent.includes('def') ? ".py" : ".cpp";
-  
-      const response = await fetch("http://localhost:5000/compile", {
+      const response = await fetch("http://localhost:5000/compile", { // ✅ ใช้ URL backend โดยตรง
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code: fileContent, extension: fileExtension }),
+        body: JSON.stringify({ code: fileContent, extension: fileExtension }), // ✅ ส่ง extension ไปด้วย
       });
-  
-      if (!response.ok) {
-        throw new Error(`Failed to compile: ${response.statusText}`);
-      }
-  
+
       const result = await response.json();
-      if (result.error) {
-        throw new Error(`Compilation failed: ${result.error}`);
-      }
-  
-      setOutput(result.output);
+      setOutput(result.output || result.error);
     } catch (error) {
       setOutput("Error: " + error.message);
     }
