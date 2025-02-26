@@ -1,69 +1,83 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS, cross_origin
-
-# Sample data (in-memory database for simplicity)
-books = [
-    {"id": 1, "title": "The Let Them Theory: A Life-Changing Tool That Millions of People Can't Stop Talking About", "author": "Mel Robbins", "image_url": "https://images-na.ssl-images-amazon.com/images/I/91I1KDnK1kL._AC_UL381_SR381,381_.jpg"},
-    {"id": 2, "title": "Forgotten Home Apothecary : 250 Powerful Remedies at Your Fingertips", "author": "Dr. Nicole Apelian", "image_url": "https://images-na.ssl-images-amazon.com/images/I/91-E86oM2IL._AC_UL381_SR381,381_.jpg"},
-    {"id": 3, "title": "Seven Things You Can't Say About China", "author": "Tom Cotton", "image_url": "https://images-na.ssl-images-amazon.com/images/I/81+mN748qkL._AC_UL381_SR381,381_.jpg"},
-    {"id": 4, "title": "Atomic Habits: An Easy & Proven Way to Build Good Habits & Break Bad Ones", "author" : "James Clear", "image_url": "https://images-na.ssl-images-amazon.com/images/I/81ANaVZk5LL._AC_UL381_SR381,381_.jpg"}
-]
+from flask_pymongo import PyMongo
+from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
-app.config['CORS_HEADERS']='Content-Type'
+
+app.config["MONGO_URI"] = "mongodb+srv://Dompol19:Dompol19@cluster0.gxbxifo.mongodb.net/book?retryWrites=true&w=majority&appName=Cluster0"
+mongo = PyMongo(app)
 
 @app.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
 
-# Create (POST) operation
-@app.route('/books', methods=['POST'])
-def create_book():
-    data = request.get_json()
-
-    new_book = {
-        "id": len(books) + 1,
-        "title": data["title"],
-        "author": data["author"],
-        "image_url": data["image_url"]
-    }
-
-    books.append(new_book)
-    return jsonify(new_book), 201
-
-# Read (GET) operation - Get all books
 @app.route('/books', methods=['GET'])
-@cross_origin()
 def get_all_books():
+    books = []
+    for book in mongo.db.book.find():
+        books.append({
+            "id": book["id"],  
+            "title": book["title"],
+            "author": book["author"],
+            "image_url": book["image_url"]
+        })
     return jsonify({"books": books})
 
-# Read (GET) operation - Get a specific book by ID
 @app.route('/books/<int:book_id>', methods=['GET'])
 def get_book(book_id):
-    book = next((b for b in books if b["id"] == book_id), None)
+    book = mongo.db.book.find_one({"id": book_id})
     if book:
-        return jsonify(book)
+        return jsonify({
+            "id": book["id"],
+            "title": book["title"],
+            "author": book["author"],
+            "image_url": book["image_url"]
+        })
     else:
         return jsonify({"error": "Book not found"}), 404
 
-# Update (PUT) operation
+@app.route('/books', methods=['POST'])
+def create_book():
+    new_book = request.json
+
+    last_book = list(mongo.db.book.find().sort("id", -1).limit(1))
+
+    new_id = (last_book[0]["id"] + 1) if last_book else 1
+
+    new_book_data = {
+        "id": new_id,  
+        "title": new_book["title"],
+        "author": new_book["author"],
+        "image_url": new_book["image_url"]
+    }
+    
+    mongo.db.book.insert_one(new_book_data)
+
+    return jsonify(new_book_data), 201
+
+
 @app.route('/books/<int:book_id>', methods=['PUT'])
 def update_book(book_id):
-    book = next((b for b in books if b["id"] == book_id), None)
-    if book:
-        data = request.get_json()
-        book.update(data)
-        return jsonify(book)
+    updated_book = request.json
+    result = mongo.db.book.update_one(
+        {"id": book_id},
+        {"$set": updated_book}
+    )
+    if result.matched_count == 1:
+        updated_book["id"] = book_id
+        return jsonify(updated_book)
+    else:
+        return jsonify({"error": "Book not found"}), 404
+
+@app.route('/books/<int:book_id>', methods=['DELETE'])
+def delete_book(book_id):
+    result = mongo.db.book.delete_one({"id": book_id})  
+    if result.deleted_count == 1:
+        return jsonify({"message": "Book deleted successfully"}), 200
     else:
         return jsonify({"error": "Book not found"}), 404
     
-# Delete operation
-@app.route('/books/<int:book_id>', methods=['DELETE'])
-def delete_book(book_id):
-    global books
-    books = [b for b in books if b["id"] != book_id]
-    return jsonify({"message": "Book deleted successfully"})
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5001, debug=True)
