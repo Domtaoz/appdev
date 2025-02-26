@@ -30,6 +30,11 @@ const App = () => {
   };
   
   const handleCreateBook = async () => {
+    if (!newBook.title || !newBook.author || !newBook.image_url) {
+      alert("fill blank");
+      return; 
+    }
+    
     try {
       const response = await axios.post(`${uri}/books`, newBook);
       setBooks([...books, response.data]);
@@ -44,6 +49,11 @@ const App = () => {
   };
 
   const handleUpdateBook = async () => {
+    if (!newBook.title || !newBook.author || !newBook.image_url) {
+      alert("fill blank");
+      return; 
+    }
+    
     try {
       const response = await axios.put(`${uri}/books/${editBook.id}`, editBook);
       const updatedBooks = books.map((book) =>
