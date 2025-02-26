@@ -28,24 +28,14 @@ const App = () => {
       setNewBook({ ...newBook, [name]: value });
     }
   };
-
-  const validateForm = (book) => {
-    if (!book.title || !book.author || !book.image_url) {
-      alert('Please fill in all fields!');
-      return false;
-    }
-    return true;
-  };
-
+  
   const handleCreateBook = async () => {
-    if (validateForm(newBook)) {
-      try {
-        const response = await axios.post(`${uri}/books`, newBook);
-        setBooks([...books, response.data]);
-        setNewBook({ title: '', author: '', image_url: '' }); // Clear the form
-      } catch (error) {
-        console.error('Error creating book:', error);
-      }
+    try {
+      const response = await axios.post(`${uri}/books`, newBook);
+      setBooks([...books, response.data]);
+      setNewBook({ title: '', author: '', image_url: '' }); // Clear the form
+    } catch (error) {
+      console.error('Error creating book:', error);
     }
   };
 
@@ -54,32 +44,29 @@ const App = () => {
   };
 
   const handleUpdateBook = async () => {
-    if (editBook && validateForm(editBook)) {
-      try {
-        const response = await axios.put(`${uri}/books/${editBook.id}`, editBook);
-        const updatedBooks = books.map((book) =>
-          book.id === editBook.id ? response.data : book
-        );
-        setBooks(updatedBooks);
-        setEditBook(null); // Clear edit mode
-      } catch (error) {
-        console.error('Error updating book:', error);
-      }
+    try {
+      const response = await axios.put(`${uri}/books/${editBook.id}`, editBook);
+      const updatedBooks = books.map((book) =>
+        book.id === editBook.id ? response.data : book
+      );
+      setBooks(updatedBooks);
+      setEditBook(null); // Clear edit mode
+    } catch (error) {
+      console.error('Error updating book:', error);
     }
   };
 
   const handleDeleteBook = async (bookId) => {
-    if (window.confirm('Are you sure you want to delete this book?')) {
-      try {
-        await axios.delete(`${uri}/books/${bookId}`);
-        const filteredBooks = books.filter((book) => book.id !== bookId);
-        setBooks(filteredBooks);
-      } catch (error) {
-        console.error('Error deleting book:', error);
-      }
+    try {
+      await axios.delete(`${uri}/books/${bookId}`);
+      const filteredBooks = books.filter((book) => book.id !== bookId);
+      setBooks(filteredBooks);
+    } catch (error) {
+      console.error('Error deleting book:', error);
     }
   };
-
+  
+  
   return (
     <div>
       <h1>Book List</h1>
@@ -96,17 +83,17 @@ const App = () => {
         <tbody>
           {books.map((book) => (
             <tr key={book.id}>
-              <td>{book.id}</td> {/* แสดง id ที่ได้จาก backend */}
+              <td>{book.id}</td>
               <td>
-                {editBook && editBook.id === book.id ? (
-                  <input
-                    type="text"
-                    name="image_url"
-                    value={editBook.image_url}
-                    onChange={handleInputChange}
-                  />
+              {editBook && editBook.id === book.id ? (
+                <input
+                  type="text"
+                  name="image_url"
+                  value={editBook.image_url}
+                  onChange={handleInputChange}
+                />
                 ) : (
-                  <img src={book.image_url} alt={book.title} width="50" />
+                  <img src={book.image_url} alt={book.title} width="50" /> 
                 )}
               </td>
               <td>
@@ -161,7 +148,7 @@ const App = () => {
         value={newBook.author}
         onChange={handleInputChange}
       />
-      <input
+      <input  
         type="text"
         name="image_url"
         placeholder="Image URL"
