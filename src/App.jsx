@@ -14,7 +14,7 @@ const App = () => {
   const fetchBooks = async () => {
     try {
       const response = await axios.get(`${uri}/books`);
-      setBooks(response.data.books);  // รับข้อมูลที่มาจาก backend
+      setBooks(response.data.books);  
     } catch (error) {
       console.error('Error fetching books:', error);
     }
@@ -38,7 +38,7 @@ const App = () => {
     try {
       const response = await axios.post(`${uri}/books`, newBook);
       setBooks([...books, response.data]);
-      setNewBook({ title: '', author: '', image_url: '' }); // Clear the form
+      setNewBook({ title: '', author: '', image_url: '' }); 
     } catch (error) {
       console.error('Error creating book:', error);
     }
@@ -60,7 +60,7 @@ const App = () => {
         book.id === editBook.id ? response.data : book
       );
       setBooks(updatedBooks);
-      setEditBook(null); // Clear edit mode
+      setEditBook(null); 
     } catch (error) {
       console.error('Error updating book:', error);
     }

@@ -2,11 +2,9 @@ from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 
-# ตั้งค่า Flask
 app = Flask(__name__)
 CORS(app)
 
-# ตั้งค่าการเชื่อมต่อ MongoDB Atlas
 app.config["MONGO_URI"] = "mongodb+srv://Dompol19:Dompol19@cluster0.gxbxifo.mongodb.net/book?retryWrites=true&w=majority&appName=Cluster0"
 mongo = PyMongo(app)
 
@@ -43,14 +41,12 @@ def get_book(book_id):
 def create_book():
     new_book = request.json
 
-    # ดึงรายการหนังสือล่าสุดที่มี id มากที่สุด
     last_book = list(mongo.db.book.find().sort("id", -1).limit(1))
 
-    # ถ้ามีหนังสือ ให้ใช้ค่า id ล่าสุด + 1, ถ้าไม่มีให้เริ่มที่ 1
     new_id = (last_book[0]["id"] + 1) if last_book else 1
 
     new_book_data = {
-        "id": new_id,  # ใช้ id เป็นตัวเลข
+        "id": new_id,  
         "title": new_book["title"],
         "author": new_book["author"],
         "image_url": new_book["image_url"]
@@ -74,7 +70,6 @@ def update_book(book_id):
     else:
         return jsonify({"error": "Book not found"}), 404
 
-# Delete (DELETE) operation - Delete a book
 @app.route('/books/<int:book_id>', methods=['DELETE'])
 def delete_book(book_id):
     result = mongo.db.book.delete_one({"id": book_id})  
