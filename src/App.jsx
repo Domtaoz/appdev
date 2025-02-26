@@ -5,7 +5,7 @@ const App = () => {
   const [books, setBooks] = useState([]);
   const [newBook, setNewBook] = useState({ title: '', author: '', image_url: ''});
   const [editBook, setEditBook] = useState(null);
-  const uri = 'https://didactic-space-invention-69v6vxv7gx72r4pq-5001.app.github.dev/'
+  const uri = 'http://127.0.0.1:5001/'
   useEffect(() => {
     fetchBooks();
   }, []);
